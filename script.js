@@ -538,6 +538,7 @@ const skipScene2AndGoScene1 = () => {
 const goBackToScene2 = () => {
   if (isLocked || phase !== 'scene3-idle') return;
   isLocked = true;
+  setPhase('transition-3-2');
   resetScene2Exit();
 
   videos.scene3.style.transition = 'opacity 0.8s ease';
