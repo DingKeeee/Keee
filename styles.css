@@ -1403,16 +1403,17 @@ body[data-phase="scene4-idle"] .contact-reveal {
     inset: 0;
   }
 
+  /* pan-y 允许内部介绍板块原生触摸滚动，页面级误触由 JS 拦截 */
   body {
     position: fixed;
     inset: 0;
-    touch-action: none;
+    touch-action: pan-y;
   }
 
   .site-shell {
     position: fixed;
     inset: 0;
-    touch-action: none;
+    touch-action: pan-y;
   }
 
   button,
@@ -1445,7 +1446,7 @@ body[data-phase="scene4-idle"] .contact-reveal {
   .content-track {
     height: var(--app-height);
     overscroll-behavior: none;
-    touch-action: none;
+    touch-action: pan-y;
   }
 
   .page {
@@ -4218,6 +4219,7 @@ body[data-phase="scene5"] .page-field .scene-reveal {
   gap: clamp(16px, 1.8vw, 26px);
   padding-top: 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(105,225,190,.28) transparent;
@@ -4428,6 +4430,7 @@ body[data-phase="scene5"] .page-field .scene-reveal {
   padding: clamp(18px, 2vw, 27px);
   max-height: min(80vh, 760px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(105,225,190,.28) transparent;
 }
@@ -4753,6 +4756,7 @@ body[data-phase="scene5"] .page-field .scene-reveal {
   padding: clamp(18px, 2vw, 26px);
   max-height: min(80vh, 760px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(105,225,190,.28) transparent;
 }
@@ -4911,7 +4915,9 @@ body[data-phase="scene5"] .page-field .scene-reveal {
     height: 100%;
     padding: clamp(86px, 13vh, 120px) clamp(18px, 5vw, 40px) clamp(20px, 4vh, 40px);
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .section-header { width: 100%; max-width: 520px; margin-bottom: 22px; }
@@ -4942,7 +4948,9 @@ body[data-phase="scene5"] .page-field .scene-reveal {
 
   .page-product {
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .tech-note { margin-top: 20px; }

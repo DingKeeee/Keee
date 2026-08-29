@@ -26,9 +26,9 @@ const mobileNextBtn = document.querySelector('[data-mobile-next]');
 let isIntroActive = true;
 let phase = 'scene1-idle';
 let isLocked = false;
-let transitionDuration = 8.833;
 let scene2Duration = 8.767;
 let scene2IdleStarted = false;
+let transitionStartAt = 0;
 let lastWheelAt = 0;
 let touchStartY = 0;
 let touchStartX = 0;
@@ -42,6 +42,8 @@ const scene2ExitDelay = 320;
 const TOUCH_THRESHOLD = 60;
 const TOUCH_THROTTLE_MS = 680;
 const INTERACTIVE_TOUCH_SELECTOR = 'button, a, input, textarea, select, label, .audio-control-panel, .mobile-scene-controls';
+/* 场景位移/转场固定时长：与背景视频时长解耦，切换永远流畅 */
+const SCENE_SLIDE_MS = 1200;
 
 const PHASE_SCENE = {
   'scene1-idle': 1,
@@ -77,6 +79,26 @@ const canScrollFurther = (el, deltaY) => {
   return el.scrollTop > 1;
 };
 
+/* 键盘导航辅助：当前页介绍板块沿方向还可滚动时平滑滚动板块（不切页） */
+const SCROLLABLE_PANEL_SELECTOR = '.awards-groups, .algo-card, .field-panel, .work-layout';
+
+const scrollScenePanelsBy = (dir) => {
+  const page = contentTrack?.children[currentScene() - 1];
+  if (!page) return false;
+
+  const panels = [...page.querySelectorAll(SCROLLABLE_PANEL_SELECTOR)];
+  for (const panel of panels) {
+    const style = window.getComputedStyle(panel);
+    if (!/(auto|scroll)/.test(style.overflowY)) continue;
+    if (panel.scrollHeight <= panel.clientHeight + 1) continue;
+    if (canScrollFurther(panel, dir)) {
+      panel.scrollBy({ top: dir * Math.max(80, panel.clientHeight * 0.85), behavior: 'smooth' });
+      return true;
+    }
+  }
+  return false;
+};
+
 const updateAppHeight = () => {
   const height = window.visualViewport?.height || window.innerHeight;
   document.documentElement.style.setProperty('--app-height', `${height}px`);
@@ -85,8 +107,7 @@ const updateAppHeight = () => {
 const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
 
 const setRootDuration = () => {
-  const ms = Math.max(1200, transitionDuration * 1000);
-  document.documentElement.style.setProperty('--transition-ms', `${ms}ms`);
+  document.documentElement.style.setProperty('--transition-ms', `${SCENE_SLIDE_MS}ms`);
 };
 
 const readMetadata = async () => {
@@ -95,7 +116,6 @@ const readMetadata = async () => {
     video.addEventListener('loadedmetadata', resolve, { once: true });
   })));
 
-  if (Number.isFinite(videos.transition.duration)) transitionDuration = videos.transition.duration;
   if (Number.isFinite(videos.scene2.duration)) scene2Duration = videos.scene2.duration;
   setRootDuration();
 };
@@ -132,19 +152,6 @@ const waitForVideoReady = (video) => new Promise(resolve => {
   video.addEventListener('error', done, { once: true });
   video.load();
 });
-
-const runWhenVideoCompletes = (video, fallbackMs, callback) => {
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    video.removeEventListener('ended', finish);
-    window.clearTimeout(timer);
-    callback();
-  };
-  const timer = window.setTimeout(finish, fallbackMs);
-  video.addEventListener('ended', finish, { once: true });
-};
 
 const pauseExcept = (activeKeys) => {
   Object.entries(videos).forEach(([key, video]) => {
@@ -286,7 +293,7 @@ const resetProgress = () => {
 
 const frameLoop = () => {
   if (phase === 'transition') {
-    const pct = Math.min(100, (videos.transition.currentTime / transitionDuration) * 100);
+    const pct = Math.min(100, ((Date.now() - transitionStartAt) / SCENE_SLIDE_MS) * 100);
     progressBar.style.width = `${pct}%`;
   }
 
@@ -324,9 +331,12 @@ const goScene2 = async () => {
   pauseExcept(['transition']);
 
   videos.transition.currentTime = 0;
+  videos.transition.loop = true;
   safePlay(videos.transition);
+  transitionStartAt = Date.now();
 
-  runWhenVideoCompletes(videos.transition, (transitionDuration * 1000) + 700, () => {
+  // 转场固定时长完成，不等待背景视频结束
+  window.setTimeout(() => {
     if (phase !== 'transition') return;
     videos.scene2.style.transition = '';
     videos.scene2.style.opacity = '1';
@@ -336,7 +346,7 @@ const goScene2 = async () => {
     videos.scene2.currentTime = 0;
     setPhase('scene2-intro');
     safePlay(videos.scene2);
-  });
+  }, SCENE_SLIDE_MS);
 };
 
 const goScene1 = ({ force = false } = {}) => {
@@ -409,7 +419,7 @@ const goScene3 = ({ skipScene2Intro = false, fromScene2Exit = false } = {}) => {
     await playScene3Intro({ holdVisibleKeys: [outgoingKey] });
     if (phase !== 'transition-2-3') return;
 
-    contentTrack.style.transition = `transform ${transitionDuration * 1000}ms var(--ease-cinema)`;
+    contentTrack.style.transition = `transform ${SCENE_SLIDE_MS}ms var(--ease-cinema)`;
     contentTrack.style.transform = 'translate3d(-200vw,0,0)';
 
     setTimeout(() => {
@@ -420,9 +430,9 @@ const goScene3 = ({ skipScene2Intro = false, fromScene2Exit = false } = {}) => {
       resetScene2Exit({ clearTimer: false });
 
       window.dispatchEvent(new CustomEvent('scene:change', { detail: { scene: 3 } }));
-    }, transitionDuration * 1000);
+    }, SCENE_SLIDE_MS);
 
-  }, fromScene2Exit ? 0 : (canEnterFromScene2Intro ? 120 : 800));
+  }, fromScene2Exit ? 0 : (canEnterFromScene2Intro ? 120 : 160));
 };
 
 const startScene2ExitToScene3 = ({ skipScene2Intro = false } = {}) => {
@@ -483,7 +493,7 @@ const goBackToScene2 = () => {
       videos.scene2Idle.style.opacity = '1';
     });
 
-    contentTrack.style.transition = `transform ${transitionDuration * 1000}ms var(--ease-cinema)`;
+    contentTrack.style.transition = `transform ${SCENE_SLIDE_MS}ms var(--ease-cinema)`;
     contentTrack.style.transform = 'translate3d(-100vw,0,0)';
 
     setTimeout(() => {
@@ -492,7 +502,7 @@ const goBackToScene2 = () => {
       isLocked = false;
 
       window.dispatchEvent(new CustomEvent('scene:change', { detail: { scene: 2 } }));
-    }, transitionDuration * 1000);
+    }, SCENE_SLIDE_MS);
 
   }, 800);
 };
@@ -697,6 +707,7 @@ const handleTouchEnd = (event) => {
   if (isIntroActive) return;
   if (isScene2Leaving) return;
 
+  const scroller = touchScroller;
   const scrolledThisGesture = touchScrolled;
   touchScrolled = false;
   touchScroller = null;
@@ -708,6 +719,9 @@ const handleTouchEnd = (event) => {
   const deltaX = touchStartX - endX;
 
   if (Math.abs(deltaY) < TOUCH_THRESHOLD || Math.abs(deltaY) < Math.abs(deltaX)) return;
+
+  // 手势起始于可滚动板块内：沿手势方向仍可滚动时只滚板块，不切页
+  if (scroller && canScrollFurther(scroller, deltaY > 0 ? 1 : -1)) return;
 
   const now = Date.now();
   if (now - lastTouchAt < TOUCH_THROTTLE_MS) return;
@@ -721,6 +735,9 @@ const warmUpAutoplay = () => {
     video.muted = true;
     video.playsInline = true;
   });
+  // 背景视频全部循环播放，不因播放结束而停帧
+  videos.transition.loop = true;
+  videos.scene2.loop = true;
   safePlay(videos.scene1);
 
   if (videos.scene3) {
@@ -741,18 +758,18 @@ const handleKeydown = (event) => {
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
   if (tag === 'BUTTON' && (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter')) return;
 
-  const scroller = findScrollable(target);
   const isSpace = event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space';
 
   if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'PageDown' || isSpace) {
-    if (scroller && canScrollFurther(scroller, 1)) return;
+    // 介绍板块未读完时优先滚动板块，不切页
+    if (scrollScenePanelsBy(1)) return;
     event.preventDefault();
     navigateSceneByDirection('next');
     return;
   }
 
   if (event.key === 'ArrowUp' || event.key === 'ArrowLeft' || event.key === 'PageUp') {
-    if (scroller && canScrollFurther(scroller, -1)) return;
+    if (scrollScenePanelsBy(-1)) return;
     event.preventDefault();
     navigateSceneByDirection('prev');
     return;
