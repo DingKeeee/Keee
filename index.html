@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN" style="--app-height: 614.4000244140625px; --transition-ms: 2971.9950000000003ms;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="丁柯的个人网站：自我介绍与鹰眼智控项目展示。">
+  <meta name="theme-color" content="#052b28">
+  <title>丁柯|相对自我介绍</title>
+  <link rel="stylesheet" href="./styles.css?v=dingke-v3">
+</head>
+<body data-phase="scene2">
+  <div id="introOverlay" class="intro-overlay is-leaving" aria-label="进入网站" aria-hidden="true" hidden="">
+    <video class="intro-bg-video" src="./assets/scene1.mp4?v=video-20260605-2" muted="" playsinline="" autoplay="" loop="" preload="auto"></video>
+    <div class="intro-atmosphere" aria-hidden="true"></div>
+    <button id="introEnterBtn" class="intro-enter-btn" type="button" aria-label="进入网站">
+      <span class="intro-enter-cn">进入网站</span>
+      <span class="intro-enter-en">ENTER SITE</span>
+    </button>
+    <audio id="introAudio" preload="auto"></audio>
+  </div>
+  <main class="site-shell" aria-label="丁柯个人介绍网站">
+    <div class="video-stage" aria-hidden="true">
+      <video id="scene1Video" class="bg-video" src="./assets/scene1.mp4?v=video-20260605-2" muted="" playsinline="" autoplay="" loop="" preload="auto" style=""></video>
+      <video id="transitionVideo" class="bg-video" src="./assets/transition_1_2.mp4?v=video-20260605-2" muted="" playsinline="" preload="auto" style=""></video>
+      <video id="scene2Video" class="bg-video" src="./assets/scene2.mp4?v=video-20260605-2" muted="" playsinline="" preload="auto" style="opacity: 1;"></video>
+      <video id="scene2IdleVideo" class="bg-video is-visible" src="./assets/scene2_idle_loop.mp4?v=video-20260605-2" muted="" playsinline="" loop="" preload="auto" style=""></video>
+      <video id="scene3Video" class="bg-video" muted="" playsinline="" preload="auto" style="opacity: 0; transition: opacity 420ms;">
+        <source src="assets/scene3.mp4" type="video/mp4">
+      </video>
+      <video id="scene3LoopVideo" class="bg-video" muted="" playsinline="" loop="" preload="auto" style="opacity: 1; transition: opacity 420ms;">
+        <source src="public/videos/scene3-loop-after.mp4" type="video/mp4">
+      </video>
+      <div class="cinema-vignette"></div>
+      <div class="grain"></div>
+    <canvas class="water-ripple-canvas" width="877" height="768" style="position: absolute; inset: 0px; width: 701.6px; height: 614.4px; pointer-events: none; z-index: 2; opacity: 0.9;"></canvas><canvas class="audio-spectrum-canvas" aria-hidden="true" width="150" height="75" style="position: absolute; top: auto; bottom: calc(18px + clamp(20px, 4vh, 44px)); left: 50%; width: 120px; height: 60px; transform: translateX(-50%); pointer-events: none; z-index: 3; opacity: 0.85; filter: drop-shadow(rgba(255, 255, 255, 0.18) 0px 0px 10px);"></canvas></div>
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="回到首页">
+        <span class="brand-mark"></span>
+        <span>DING KE / PORTFOLIO</span>
+      </a>
+      <nav>
+        <button class="nav-dot" data-go="scene1" aria-label="首页"></button>
+        <button class="nav-dot is-active" data-go="scene2" aria-label="自我介绍"></button>
+        <button class="nav-dot" data-go="scene3" aria-label="鹰眼智控·产品简介"></button>
+        <button class="nav-dot" data-go="scene4" aria-label="鹰眼智控·关键技术"></button>
+        <button class="nav-dot" data-go="scene5" aria-label="鹰眼智控·实地应用"></button>
+      </nav>
+    </header>
+
+    <div class="mobile-scene-controls" aria-label="移动端场景导航">
+      <button class="mobile-scene-btn" type="button" data-mobile-prev="" aria-label="上一幕">上一幕</button>
+      <button class="mobile-scene-btn" type="button" data-mobile-next="" aria-label="下一幕">下一幕</button>
+    </div>
+
+    <div id="contentTrack" class="content-track is-moving" style="width: 500vw;">
+      <!-- Page 1: Home -->
+      <section class="page page-home" aria-labelledby="home-title">
+        <div class="hero-copy">
+          <h1 id="home-title">
+            <span class="home-title-line">欢迎来到，</span>
+            <span class="home-title-line home-title-line-offset">丁柯的主页。</span>
+          </h1>
+          <div class="hero-actions">
+            <button id="enterBtn" class="primary-btn">向下滚动认识我</button>
+            <span class="hint">About Ding Ke</span>
+          </div>
+        </div>
+
+        <aside class="profile-card glass-panel">
+          <span class="small-label">Personal Profile</span>
+          <h2>DING KE / 丁柯</h2>
+          <p>把每一个想法，做成看得见的作品。</p>
+          <dl>
+            <div><dt>Project</dt><dd>鹰眼智控</dd></div>
+            <div><dt>Focus</dt><dd>CV · Algorithm · Creation</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <!-- Page 2: Self Introduction -->
+      <section class="page page-work page-intro" aria-labelledby="intro-title">
+        <div class="work-layout">
+          <div class="section-header">
+            <p class="eyebrow">Self Introduction</p>
+            <h2 id="intro-title">自我介绍</h2>
+            <p class="section-subtitle">
+              <span class="intro-meta">湖南理工大学 · 人工智能专业 · 专业排名前十</span>
+              从竞赛到科研，把每一步的想法一步步做成作品。
+            </p>
+
+            <aside class="intro-avatar-card scene-reveal" style="--reveal-delay: 260ms;" aria-label="丁柯的像素形象">
+              <div class="intro-avatar-stage">
+                <img src="assets/dk-avatar.jpg?v=1" alt="丁柯的像素头像">
+              </div>
+              <span class="intro-avatar-tag">DING KE / PIXEL PROFILE</span>
+            </aside>
+          </div>
+
+          <div class="intro-stage scene-reveal" style="--reveal-delay: 140ms;">
+            <div class="awards-panel glass-panel">
+              <div class="awards-panel-head">
+                <span class="small-label">Honor Roll</span>
+                <h3>荣誉档案</h3>
+              </div>
+
+              <div class="awards-groups">
+                <section class="award-group award-group-national">
+                  <h4>国家级</h4>
+                  <ul>
+                    <li><b>01</b><span>申请一篇软著专利</span></li>
+                    <li><b>02</b><span>发表一篇国家级学术期刊论文（第一作者）</span></li>
+                    <li><b>03</b><span>第十八届“挑战杯”全国大学生课外学生科技作品竞赛国家级银奖</span></li>
+                    <li><b>04</b><span>2024 年大学生创新训练计划项目国家级创业实践项目结项</span></li>
+                  </ul>
+                </section>
+
+                <section class="award-group award-group-provincial">
+                  <h4>省级</h4>
+                  <ul>
+                    <li><b>01</b><span>湖南省创新创业优秀毕业生</span></li>
+                    <li><b>02</b><span>第十一届全国“挑战杯”湖南省大学生创业计划竞赛省级二等奖</span></li>
+                    <li><b>03</b><span>第十六届“挑战杯”湖南省大学生课外学术科技作品竞赛省级三等奖</span></li>
+                    <li><b>04</b><span>湖南省“互联网+”大学生创新大赛（2024）高教主赛道本科生创意组省赛三等奖</span></li>
+                    <li><b>05</b><span>2025 年大学生创新训练计划项目省级创新训练计划项目立项（负责人）</span></li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 3: Eagle Eye Product -->
+      <section class="page page-product" aria-labelledby="product-title">
+        <div class="gallery-heading">
+          <p class="eyebrow">Eagle Eye / Product</p>
+          <h2 id="product-title">什么是<br>鹰眼智控？</h2>
+          <p>岳阳市首款智能化非机动车交通安全监管系统，集采集、识别、提取、分析、管理、通知于一体的一站式监管闭环。</p>
+        </div>
+
+        <div class="product-flow">
+          <div class="product-steps" aria-label="鹰眼智控工作流程">
+            <article class="flow-step scene-reveal" style="--reveal-delay: 60ms;">
+              <span class="flow-step-no">01</span>
+              <h3>采集</h3>
+              <p>鹰眼摄像头获取图像和视频</p>
+            </article>
+            <article class="flow-step scene-reveal" style="--reveal-delay: 120ms;">
+              <span class="flow-step-no">02</span>
+              <h3>识别</h3>
+              <p>鹰眼系统算法对图像与视频进行识别判定</p>
+            </article>
+            <article class="flow-step scene-reveal" style="--reveal-delay: 180ms;">
+              <span class="flow-step-no">03</span>
+              <h3>提取</h3>
+              <p>鹰眼系统算法对图像与视频进行信息提取</p>
+            </article>
+            <article class="flow-step scene-reveal" style="--reveal-delay: 240ms;">
+              <span class="flow-step-no">04</span>
+              <h3>分析</h3>
+              <p>对违规信息进行分析</p>
+            </article>
+            <article class="flow-step scene-reveal" style="--reveal-delay: 300ms;">
+              <span class="flow-step-no">05</span>
+              <h3>管理</h3>
+              <p>收录违规者的所有必要信息</p>
+            </article>
+            <article class="flow-step scene-reveal" style="--reveal-delay: 360ms;">
+              <span class="flow-step-no">06</span>
+              <h3>通知</h3>
+              <p>发送短信告知违规者</p>
+            </article>
+          </div>
+
+          <div class="product-outcome glass-panel scene-reveal" style="--reveal-delay: 440ms;">
+            <span class="product-outcome-label">Closed Loop</span>
+            <p>违规信息自动短信告知违规者，交管部门对违规者依法惩处，形成完整监管闭环。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 4: Eagle Eye Technology -->
+      <section class="page page-tech" aria-labelledby="tech-title">
+        <div class="tech-scene-bg" aria-hidden="true"></div>
+        <div class="work-layout">
+          <div class="section-header">
+            <p class="eyebrow">Key Technology</p>
+            <h2 id="tech-title">关键技术</h2>
+            <p class="section-subtitle">两套自研算法、两篇软著支撑，攻克非机动车监管的“识别难”与“判别难”。</p>
+
+            <div class="tech-note scene-reveal" style="--reveal-delay: 380ms;">
+              <b>SOFT COPYRIGHT</b>
+              <p>两套核心算法均获软件著作权支撑，鹰眼智控系统申请软著专利。</p>
+            </div>
+          </div>
+
+          <div class="tech-cards">
+            <article class="algo-card glass-panel scene-reveal" style="--reveal-delay: 120ms;">
+              <header class="algo-head">
+                <span class="algo-index">TECH 01</span>
+                <h3>AFG-MOD 算法</h3>
+                <p class="algo-problem">解决“识别难”问题</p>
+              </header>
+              <p class="algo-desc">自研基于<b>自适应特征学习</b>的多目标检测算法，与常用目标识别算法相比，准确率与识别速度更胜一筹。</p>
+
+              <div class="algo-data">
+                <span class="algo-data-label">Dataset</span>
+                <p>公开数据集 BDD100K 与团队自主采集修正，共 <b>100000+</b> 样本训练</p>
+              </div>
+
+              <div class="algo-modules">
+                <h4>算法架构</h4>
+                <div class="algo-module"><b>RPN 区域建议网络</b></div>
+                <div class="algo-module"><b>自适应特征学习模块</b><span>自适应权重层 · 注意力机制层</span></div>
+                <div class="algo-module"><b>细粒度特征提取模块</b></div>
+                <div class="algo-module"><b>目标匹配模块</b><span>全连接层 · 相似度计算层 · 分类层</span></div>
+              </div>
+
+              <div class="algo-compare">
+                <h4>识别准确率</h4>
+                <div class="compare-row"><span>传统 YOLOv5 / QRCN</span><div class="compare-bar"><i style="--pct: 85%"></i><b>85%</b></div></div>
+                <div class="compare-row is-hero"><span>鹰眼 AFG-MOD</span><div class="compare-bar"><i style="--pct: 96.5%"></i><b>96.5%</b></div></div>
+                <div class="algo-chip-row"><span>识别耗时：传统 7~9ms → 鹰眼 3ms</span></div>
+              </div>
+
+              <footer class="algo-copyright">软著《基于自适应学习性细粒度多目标检测算法》</footer>
+            </article>
+
+            <article class="algo-card glass-panel scene-reveal" style="--reveal-delay: 260ms;">
+              <header class="algo-head">
+                <span class="algo-index">TECH 02</span>
+                <h3>MPF-VOTBR 算法</h3>
+                <p class="algo-problem">解决“判别难”问题</p>
+              </header>
+              <p class="algo-desc">自研基于<b>多模态融合</b>的目标跟踪与行为识别算法，相比传统 YOLOv5 + DeepSORT + SlowFAST 算法组合，行为识别准确率更胜一筹。</p>
+
+              <div class="algo-data">
+                <span class="algo-data-label">Dataset</span>
+                <p>OTB 系列、NFS、GOT 数据集与团队自主采集修正，共约 <b>328GB+</b> 视频序列</p>
+              </div>
+
+              <div class="algo-modules">
+                <h4>算法架构</h4>
+                <div class="algo-module"><b>图像特征提取</b><span>提取图像信息特征</span></div>
+                <div class="algo-module"><b>文本信息编码</b><span>编码处理文本信息</span></div>
+                <div class="algo-module"><b>多模态融合</b><span>与文本信息多模态融合提取特征</span></div>
+                <div class="algo-module"><b>特征输出</b><span>行为特征图 · 文本特征嵌入向量</span></div>
+              </div>
+
+              <div class="algo-compare">
+                <h4>行为识别准确率</h4>
+                <div class="compare-row"><span>传统 YOLOv5+DeepSORT+SlowFAST</span><div class="compare-bar"><i style="--pct: 85.2%"></i><b>85.2%</b></div></div>
+                <div class="compare-row is-hero"><span>鹰眼 MPF-VOTBR</span><div class="compare-bar"><i style="--pct: 96.3%"></i><b>96.3%</b></div></div>
+                <div class="algo-chip-row"><span>跟踪 · 识别 · 判别一体化输出</span></div>
+              </div>
+
+              <footer class="algo-copyright">软著《基于多模态感知融合的视觉目标跟踪与行为识别算法》</footer>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 5: Eagle Eye Field Application -->
+      <section class="page page-field" aria-labelledby="field-title">
+        <div class="field-scene-bg" aria-hidden="true"></div>
+        <div class="work-layout">
+          <div class="section-header">
+            <p class="eyebrow">Field Application</p>
+            <h2 id="field-title">实地应用</h2>
+            <p class="section-subtitle">从城市路口到企业机房，真实场景中的表现与好评。</p>
+
+            <div class="field-chart scene-reveal" style="--reveal-delay: 420ms;">
+              <h4>定点安装后违规抓捕统计<small>10月份数据 · 单位：人/小时</small></h4>
+              <div class="field-chart-bars">
+                <div class="field-chart-row"><span>人工录像审核</span><i style="--pct: 100%"><b>830</b></i></div>
+                <div class="field-chart-row is-hero"><span>鹰眼二代</span><i style="--pct: 98.2%"><b>815</b></i></div>
+                <div class="field-chart-row"><span>鹰眼一代</span><i style="--pct: 79.9%"><b>663</b></i></div>
+                <div class="field-chart-row"><span>同类产品</span><i style="--pct: 63.9%"><b>530</b></i></div>
+              </div>
+              <p class="field-chart-note">鹰眼二代抓捕量逼近人工审核水平，远超同类产品（首日数据）。</p>
+            </div>
+          </div>
+
+          <div class="field-panels">
+            <article class="field-panel glass-panel scene-reveal" style="--reveal-delay: 140ms;">
+              <header class="field-panel-head">
+                <span class="field-panel-tag">TRAFFIC POLICE</span>
+                <h3>岳阳市交警大队</h3>
+                <p>验证产品效果，获得高度赞赏</p>
+              </header>
+
+              <blockquote class="field-quote">
+                <p>“此产品应用后将会极大程度上规范广大骑手的驾驶行为。”</p>
+                <cite>—— 岳阳市岳阳楼区交警支队大队长 候俊</cite>
+              </blockquote>
+
+              <div class="field-photos">
+                <figure>
+                  <img src="assets/field-gen1.png" alt="鹰眼智控一代产品实地测试">
+                  <figcaption>一代产品测试</figcaption>
+                </figure>
+                <figure>
+                  <img src="assets/field-gen2.jpg" alt="鹰眼智控二代产品实地测试">
+                  <figcaption>二代产品测试</figcaption>
+                </figure>
+              </div>
+
+              <p class="field-note">二代产品实地测试效果优异，且得到交通部门高度赞扬。</p>
+            </article>
+
+            <article class="field-panel glass-panel scene-reveal" style="--reveal-delay: 300ms;">
+              <header class="field-panel-head">
+                <span class="field-panel-tag">CHINA UNICOM</span>
+                <h3>中国联通 · 监管技术研发部</h3>
+                <p>验证产品性能优越，效果显著</p>
+              </header>
+
+              <div class="field-stats">
+                <div class="field-stat"><b>3～4倍</b><span>画面清晰度提高</span></div>
+                <div class="field-stat"><b>11.32%</b><span>违规判别率提高</span></div>
+              </div>
+
+              <div class="field-photos">
+                <figure>
+                  <img src="assets/unicom-demo.jpg" alt="中国联通展厅系统演示">
+                  <figcaption>系统演示</figcaption>
+                </figure>
+                <figure>
+                  <img src="assets/unicom-team.jpg" alt="中国联通验证合影">
+                  <figcaption>验证合影</figcaption>
+                </figure>
+              </div>
+
+              <blockquote class="field-quote field-quote-mini">
+                <p>“系统实际应用效率很高，抓取图像清晰度相当高清，放大后仍能明了呈现；高效的反馈机制有助于安全风险的快速识别与处置，建议扩大试用规模。”</p>
+                <cite>—— 技术检测员反馈 · 2024年3月 · 中国联通岳阳市开发区分公司</cite>
+              </blockquote>
+
+              <p class="field-note">企业反馈：验证成像质感好，判别准确。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="progress-ui" aria-hidden="true">
+      <span id="stateText">Scene 02 · 自我介绍</span>
+      <span class="progress-line"><i id="progressBar" style="width: 100%;"></i></span>
+    </div>
+  <canvas class="water-ripple-canvas" width="877" height="768" style="position: absolute; inset: 0px; width: 701.6px; height: 614.4px; pointer-events: none; z-index: 2;"></canvas></main>
+
+  <script src="./script.js?v=dingke-v3"></script>
+  <script src="./water-ripple.js?v=4"></script>
+  <script src="./audio-spectrum.js?v=4"></script>
+  <script src="./audio-control.js?v=2"></script>
+  <script src="./effects-init.js?v=2"></script>
+
+
+<div class="audio-control-panel is-playing" role="region" aria-label="音频控制" style="top: 15.5375px;"><button class="audio-play-btn" aria-label="暂停音频" style="display: none;">
+      <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+      <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: block;">
+        <rect x="6" y="4" width="4" height="16"></rect>
+        <rect x="14" y="4" width="4" height="16"></rect>
+      </svg>
+    </button><div class="audio-volume-container"><span class="audio-volume-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </span><input type="range" class="audio-volume-slider" min="0" max="100" aria-label="音量"></div></div></body></html>
