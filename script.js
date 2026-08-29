@@ -286,6 +286,9 @@ const handleEnter = async () => {
   introOverlay.classList.add('is-leaving');
   introOverlay.setAttribute('aria-hidden', 'true');
 
+  /* 点击手势内重试背景视频：覆盖初始化时 play() 被浏览器策略拒绝的情况 */
+  resumeVisibleVideos();
+
   /* 开屏视频退场后暂停，释放解码资源（移动端同时播放两路 21MB 视频会卡顿） */
   introOverlay.querySelector('.intro-bg-video')?.pause();
   introAudio?.pause();
@@ -882,6 +885,34 @@ siteShell?.addEventListener('touchstart', handleTouchStart, { passive: true });
 siteShell?.addEventListener('touchmove', handleTouchMove, { passive: false });
 siteShell?.addEventListener('touchend', handleTouchEnd, { passive: true });
 siteShell?.addEventListener('touchcancel', () => { isTouching = false; }, { passive: true });
+
+/* 移动端播放兜底：iOS 锁屏/切后台会暂停所有视频且不自动恢复；低电量/省流量
+ * 模式下 setTimeout 里的 play() 因丢失手势上下文被拒；蜂窝网络 iOS 忽略 preload，
+ * 视频 若从未成功 play 过则连首帧都不会加载。在真实手势与页面重新可见时重试。 */
+const resumeVisibleVideos = () => {
+  if (isIntroActive) return;
+  Object.values(videos).forEach(video => {
+    if (video.classList.contains('is-visible') && video.paused) {
+      ensureLoaded(video);
+      safePlay(video);
+    }
+  });
+};
+
+siteShell?.addEventListener('pointerdown', resumeVisibleVideos, { passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) window.setTimeout(resumeVisibleVideos, 80);
+});
+videos.scene1.addEventListener('canplay', () => {
+  if (!isIntroActive && videos.scene1.classList.contains('is-visible')) safePlay(videos.scene1);
+});
+
+/* 低电量模式下开屏视频 autoplay 同样会被拒：点击开屏任意处即重试 */
+const introBgVideo = introOverlay?.querySelector('.intro-bg-video');
+introOverlay?.addEventListener('pointerdown', () => {
+  if (isIntroActive && introBgVideo?.paused) safePlay(introBgVideo);
+}, { passive: true });
+
 window.addEventListener('resize', updateAppHeight);
 window.visualViewport?.addEventListener('resize', updateAppHeight);
 window.visualViewport?.addEventListener('scroll', updateAppHeight);
