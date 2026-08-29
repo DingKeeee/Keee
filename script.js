@@ -159,18 +159,25 @@ const safePlay = (video) => {
   }
 };
 
-const waitForVideoReady = (video) => new Promise(resolve => {
+/* 最多等 timeoutMs：弱网下视频数据迟迟不到时，转场照常完成（页面可操作是底线），
+ * 视频数据到达后 play() 的 pending promise 会自动开始播放 */
+const waitForVideoReady = (video, timeoutMs = 3500) => new Promise(resolve => {
   if (video.readyState >= 2) {
     resolve();
     return;
   }
 
+  let settled = false;
   const done = () => {
+    if (settled) return;
+    settled = true;
+    window.clearTimeout(timer);
     video.removeEventListener('loadeddata', done);
     video.removeEventListener('canplay', done);
     video.removeEventListener('error', done);
     resolve();
   };
+  const timer = window.setTimeout(done, timeoutMs);
   video.addEventListener('loadeddata', done, { once: true });
   video.addEventListener('canplay', done, { once: true });
   video.addEventListener('error', done, { once: true });
@@ -231,7 +238,13 @@ const playScene3Intro = async ({ holdVisibleKeys = [] } = {}) => {
   resetScene3Videos();
   videos.scene3.currentTime = 0;
   videos.scene3Loop.load();
-  await waitForVideoReady(videos.scene3);
+  await waitForVideoReady(videos.scene3, 3500);
+
+  /* scene3 加载失败：直接切 loop 视频接替，避免背景永久黑屏 */
+  if (videos.scene3.error) {
+    playScene3Loop();
+    return;
+  }
 
   showOnly([...holdVisibleKeys, 'scene3']);
   videos.scene3.onended = playScene3Loop;
@@ -380,6 +393,10 @@ const goScene2 = async () => {
     videos.scene2.currentTime = 0;
     setPhase('scene2-intro');
     safePlay(videos.scene2);
+
+    /* 预热 scene3 系列：用户在 scene2 停留期间后台缓冲，到达 scene3 时背景立即可用 */
+    ensureLoaded(videos.scene3);
+    ensureLoaded(videos.scene3Loop);
   }, SCENE_SLIDE_MS);
 };
 
@@ -479,6 +496,10 @@ const startScene2ExitToScene3 = ({ skipScene2Intro = false } = {}) => {
   isScene2Leaving = true;
   isLocked = true;
 
+  /* 去往 scene3 前确保两个视频都已触发加载（含直接从导航点进入的路径） */
+  ensureLoaded(videos.scene3);
+  ensureLoaded(videos.scene3Loop);
+
   const visibleScene2Key = phase === 'scene2-idle' ? 'scene2Idle' : 'scene2';
   ensureLoaded(videos[visibleScene2Key]);
   showOnly([visibleScene2Key]);
@@ -486,7 +507,12 @@ const startScene2ExitToScene3 = ({ skipScene2Intro = false } = {}) => {
 
   scene2ExitTimer = window.setTimeout(() => {
     scene2ExitTimer = null;
-    const shouldSkipIntro = skipScene2Intro && phase === 'scene2-intro';
+    /* 等待期间页面已被切走：解除离开锁，放弃本次退出（防止永久锁死所有输入） */
+    if (phase !== 'scene2-intro' && phase !== 'scene2-idle') {
+      resetScene2Exit();
+      return;
+    }
+    const shouldSkipIntro = phase === 'scene2-intro';
     if (!shouldSkipIntro) isLocked = false;
     if (phase === 'scene2-intro') progressBar.style.width = '100%';
     goScene3({ skipScene2Intro: shouldSkipIntro, fromScene2Exit: true });
