@@ -79,6 +79,13 @@ const canScrollFurther = (el, deltaY) => {
   return el.scrollTop > 1;
 };
 
+/* 页级滚动容器（移动端/窄屏整页内容流）：滚到边界后允许切页 */
+const PAGE_LEVEL_SCROLLER_SELECTOR = '.work-layout, .page-product';
+/* 介绍板块区域（滚轮悬停其上时永远不切页） */
+const PANEL_AREA_SELECTOR = '.awards-panel, .algo-card, .field-panel';
+
+const isPageLevelScroller = (el) => !!(el && el.matches && el.matches(PAGE_LEVEL_SCROLLER_SELECTOR));
+
 /* 键盘导航辅助：当前页介绍板块沿方向还可滚动时平滑滚动板块（不切页） */
 const SCROLLABLE_PANEL_SELECTOR = '.awards-groups, .algo-card, .field-panel, .work-layout';
 
@@ -111,13 +118,30 @@ const setRootDuration = () => {
 };
 
 const readMetadata = async () => {
-  await Promise.all(Object.values(videos).map(video => new Promise(resolve => {
+  /* 每个视频最多等 2.6s：移动端网络慢或懒加载视频不下载元数据时，
+   * 不能让整个初始化（背景显示/自动播放）无限期挂起 */
+  const videoReady = (video) => new Promise(resolve => {
     if (Number.isFinite(video.duration) && video.duration > 0) return resolve();
-    video.addEventListener('loadedmetadata', resolve, { once: true });
-  })));
+    const done = () => {
+      window.clearTimeout(timer);
+      video.removeEventListener('loadedmetadata', done);
+      video.removeEventListener('error', done);
+      resolve();
+    };
+    const timer = window.setTimeout(done, 2600);
+    video.addEventListener('loadedmetadata', done, { once: true });
+    video.addEventListener('error', done, { once: true });
+  });
 
-  if (Number.isFinite(videos.scene2.duration)) scene2Duration = videos.scene2.duration;
+  await Promise.all(Object.values(videos).map(videoReady));
+
+  if (Number.isFinite(videos.scene2.duration) && videos.scene2.duration > 0) scene2Duration = videos.scene2.duration;
   setRootDuration();
+};
+
+/* 懒加载视频（preload=none）在使用前必须先触发加载，否则 currentTime/play 无效 */
+const ensureLoaded = (video) => {
+  if (video && video.readyState === 0) video.load();
 };
 
 const showOnly = (visibleKeys) => {
@@ -172,6 +196,8 @@ const resetScene3Videos = () => {
   videos.scene3.onended = null;
   videos.scene3.pause();
   videos.scene3Loop.pause();
+  ensureLoaded(videos.scene3);
+  ensureLoaded(videos.scene3Loop);
   videos.scene3.currentTime = 0;
   videos.scene3Loop.currentTime = 0;
   videos.scene3.style.transition = '';
@@ -247,6 +273,10 @@ const handleEnter = async () => {
   introOverlay.classList.add('is-leaving');
   introOverlay.setAttribute('aria-hidden', 'true');
 
+  /* 开屏视频退场后暂停，释放解码资源（移动端同时播放两路 21MB 视频会卡顿） */
+  introOverlay.querySelector('.intro-bg-video')?.pause();
+  introAudio?.pause();
+
   introOverlay.addEventListener('transitionend', () => {
     introOverlay.hidden = true;
   }, { once: true });
@@ -304,6 +334,7 @@ const frameLoop = () => {
 
     if (!scene2IdleStarted && videos.scene2.currentTime >= idleStart) {
       scene2IdleStarted = true;
+      ensureLoaded(videos.scene2Idle);
       videos.scene2Idle.currentTime = 0;
       safePlay(videos.scene2Idle);
       showOnly(['scene2Idle']);
@@ -330,6 +361,9 @@ const goScene2 = async () => {
   showOnly(['transition']);
   pauseExcept(['transition']);
 
+  ensureLoaded(videos.transition);
+  ensureLoaded(videos.scene2);
+  ensureLoaded(videos.scene2Idle);
   videos.transition.currentTime = 0;
   videos.transition.loop = true;
   safePlay(videos.transition);
@@ -362,6 +396,9 @@ const goScene1 = ({ force = false } = {}) => {
   videos.transition.pause();
   videos.scene2.pause();
   videos.scene2Idle.pause();
+  ensureLoaded(videos.transition);
+  ensureLoaded(videos.scene2);
+  ensureLoaded(videos.scene2Idle);
   videos.transition.currentTime = 0;
   videos.scene2.currentTime = 0;
   videos.scene2Idle.currentTime = 0;
@@ -443,6 +480,7 @@ const startScene2ExitToScene3 = ({ skipScene2Intro = false } = {}) => {
   isLocked = true;
 
   const visibleScene2Key = phase === 'scene2-idle' ? 'scene2Idle' : 'scene2';
+  ensureLoaded(videos[visibleScene2Key]);
   showOnly([visibleScene2Key]);
   safePlay(videos[visibleScene2Key]);
 
@@ -483,6 +521,7 @@ const goBackToScene2 = () => {
     resetScene3Videos();
 
     showOnly(['scene2Idle']);
+    ensureLoaded(videos.scene2Idle);
     videos.scene2Idle.style.display = 'block';
     videos.scene2Idle.style.opacity = '0';
     videos.scene2Idle.currentTime = 0;
@@ -560,6 +599,7 @@ const quickJump = (target) => {
     videos.scene2.pause();
     videos.scene2Idle.pause();
     resetScene3Videos();
+    ensureLoaded(videos.scene3Loop);
     videos.scene3Loop.currentTime = 0;
     videos.scene3Loop.style.transition = 'opacity 600ms ease';
     videos.scene3Loop.classList.add('is-visible');
@@ -580,6 +620,7 @@ const quickJump = (target) => {
     }, 620);
 
     const key = target === 1 ? 'scene1' : 'scene2Idle';
+    ensureLoaded(videos[key]);
     videos.scene2Idle.style.display = 'block';
     videos[key].style.opacity = '0';
     showOnly([key]);
@@ -649,6 +690,14 @@ const handleWheel = (event) => {
 
   const scroller = findScrollable(event.target);
   if (scroller && canScrollFurther(scroller, event.deltaY)) return;
+
+  /* 介绍板块区域内（含触底/顶）：只吞掉滚轮，永不切页 */
+  const overPanelArea = event.target?.closest?.(PANEL_AREA_SELECTOR) ||
+    (scroller && !isPageLevelScroller(scroller));
+  if (overPanelArea) {
+    event.preventDefault();
+    return;
+  }
 
   event.preventDefault();
 
@@ -720,7 +769,10 @@ const handleTouchEnd = (event) => {
 
   if (Math.abs(deltaY) < TOUCH_THRESHOLD || Math.abs(deltaY) < Math.abs(deltaX)) return;
 
-  // 手势起始于可滚动板块内：沿手势方向仍可滚动时只滚板块，不切页
+  /* 手势起始于介绍板块：永不切页（与桌面滚轮规则一致） */
+  if (scroller && !isPageLevelScroller(scroller)) return;
+
+  /* 页级容器：沿手势方向还能滚动时只滚内容，不切页 */
   if (scroller && canScrollFurther(scroller, deltaY > 0 ? 1 : -1)) return;
 
   const now = Date.now();

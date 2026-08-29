@@ -1403,17 +1403,18 @@ body[data-phase="scene4-idle"] .contact-reveal {
     inset: 0;
   }
 
-  /* pan-y 允许内部介绍板块原生触摸滚动，页面级误触由 JS 拦截 */
+  /* auto + JS 条件 preventDefault：板块原生滚动，页面级手势由脚本接管，
+   * 避免 pan-y 让浏览器抢占垂直手势后触发 touchcancel 杀死切页判断 */
   body {
     position: fixed;
     inset: 0;
-    touch-action: pan-y;
+    touch-action: auto;
   }
 
   .site-shell {
     position: fixed;
     inset: 0;
-    touch-action: pan-y;
+    touch-action: auto;
   }
 
   button,
@@ -1446,7 +1447,7 @@ body[data-phase="scene4-idle"] .contact-reveal {
   .content-track {
     height: var(--app-height);
     overscroll-behavior: none;
-    touch-action: pan-y;
+    touch-action: auto;
   }
 
   .page {

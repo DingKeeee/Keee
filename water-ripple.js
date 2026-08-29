@@ -6,6 +6,9 @@ class WaterRippleEffect {
     this.ripples = [];
     this.animationId = null;
     this.lastRippleAt = 0;
+    this.dirty = false;
+    this.canvasWidth = 0;
+    this.canvasHeight = 0;
     this.boundAnimate = this.animate.bind(this);
     this.boundResize = this.resize.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
@@ -50,6 +53,10 @@ class WaterRippleEffect {
     this.canvas.style.width = `${rect.width}px`;
     this.canvas.style.height = `${rect.height}px`;
     this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    this.canvasWidth = Math.max(1, Math.round(rect.width));
+    this.canvasHeight = Math.max(1, Math.round(rect.height));
+    this.dirty = true;
   }
 
   createRipple(x, y) {
@@ -74,6 +81,7 @@ class WaterRippleEffect {
     const rect = this.container.getBoundingClientRect();
     this.ripples.push(this.createRipple(clientX - rect.left, clientY - rect.top));
     this.lastRippleAt = now;
+    this.dirty = true;
   }
 
   handlePointerMove(event) {
@@ -125,21 +133,25 @@ class WaterRippleEffect {
   }
 
   animate() {
-    const rect = this.container.getBoundingClientRect();
-    this.ctx.clearRect(0, 0, rect.width, rect.height);
+    /* 空闲时跳过 clearRect/绘制，避免全屏画布 60fps 空转造成卡顿 */
+    if (this.ripples.length > 0 || this.dirty) {
+      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    this.ripples = this.ripples.filter(ripple => {
-      ripple.radius += ripple.speed;
-      ripple.alpha -= ripple.fadeSpeed;
-      ripple.life += 1;
+      this.ripples = this.ripples.filter(ripple => {
+        ripple.radius += ripple.speed;
+        ripple.alpha -= ripple.fadeSpeed;
+        ripple.life += 1;
 
-      if (ripple.radius > ripple.maxRadius || ripple.alpha <= 0 || ripple.life > ripple.maxLife) {
-        return false;
-      }
+        if (ripple.radius > ripple.maxRadius || ripple.alpha <= 0 || ripple.life > ripple.maxLife) {
+          return false;
+        }
 
-      this.drawRipple(ripple);
-      return true;
-    });
+        this.drawRipple(ripple);
+        return true;
+      });
+
+      this.dirty = this.ripples.length > 0;
+    }
 
     this.animationId = requestAnimationFrame(this.boundAnimate);
   }
@@ -165,10 +177,3 @@ class WaterRippleEffect {
 }
 
 window.WaterRippleEffect = WaterRippleEffect;
-
-document.addEventListener('DOMContentLoaded', () => {
-  const shell = document.querySelector('.site-shell');
-  if (!shell) return;
-
-  window.sceneScrollWaterRipple = new WaterRippleEffect(shell);
-});
