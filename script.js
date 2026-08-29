@@ -223,11 +223,17 @@ const handleEnter = async () => {
   if (!isIntroActive) return;
 
   if (window.audioControllerInstance) {
-    try {
-      await window.audioControllerInstance.play();
-    } catch (error) {
-      console.warn('音频自动播放失败（浏览器策略）', error);
-    }
+    const startAudio = async () => {
+      try {
+        await window.audioControllerInstance.play();
+      } catch (error) {
+        console.warn('音频自动播放失败（浏览器策略）', error);
+        window.setTimeout(() => {
+          window.audioControllerInstance?.play().catch(() => {});
+        }, 320);
+      }
+    };
+    startAudio();
   }
 
   isIntroActive = false;
@@ -727,9 +733,56 @@ const warmUpAutoplay = () => {
   }
 };
 
+const handleKeydown = (event) => {
+  if (isIntroActive) return;
+
+  const target = event.target;
+  const tag = target?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+  if (tag === 'BUTTON' && (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter')) return;
+
+  const scroller = findScrollable(target);
+  const isSpace = event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space';
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'PageDown' || isSpace) {
+    if (scroller && canScrollFurther(scroller, 1)) return;
+    event.preventDefault();
+    navigateSceneByDirection('next');
+    return;
+  }
+
+  if (event.key === 'ArrowUp' || event.key === 'ArrowLeft' || event.key === 'PageUp') {
+    if (scroller && canScrollFurther(scroller, -1)) return;
+    event.preventDefault();
+    navigateSceneByDirection('prev');
+    return;
+  }
+
+  if (event.key === 'Home') {
+    if (currentScene() !== 1) {
+      event.preventDefault();
+      goToScene(1);
+    }
+    return;
+  }
+
+  if (event.key === 'End') {
+    if (currentScene() !== 5) {
+      event.preventDefault();
+      goToScene(5);
+    }
+    return;
+  }
+
+  if (/^[1-5]$/.test(event.key)) {
+    goToScene(Number(event.key));
+  }
+};
+
 introEnterBtn.addEventListener('click', handleEnter);
 enterBtn.addEventListener('click', goScene2);
 window.addEventListener('wheel', handleWheel, { passive: false });
+window.addEventListener('keydown', handleKeydown);
 siteShell?.addEventListener('touchstart', handleTouchStart, { passive: true });
 siteShell?.addEventListener('touchmove', handleTouchMove, { passive: false });
 siteShell?.addEventListener('touchend', handleTouchEnd, { passive: true });

@@ -81,7 +81,6 @@ class AudioController {
     this.controlPanel.appendChild(volumeContainer);
     document.body.appendChild(this.controlPanel);
 
-    this.playButton.style.display = 'none';
     this.setVolume(this.options.defaultVolume);
   }
 
@@ -117,6 +116,10 @@ class AudioController {
     }
 
     const audioElement = this.spectrumEffect.loadAudio(audioUrl);
+
+    audioElement.addEventListener('canplay', () => {
+      this.setVolume(this.options.defaultVolume);
+    }, { once: true });
 
     if (this.options.autoPlay) {
       audioElement.addEventListener('canplay', () => {

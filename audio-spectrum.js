@@ -132,9 +132,23 @@ class AudioSpectrumEffect {
       return;
     }
 
+    // iOS Safari 下 createMediaElementSource 会将音频路由到无声的图，
+    // 此类环境跳过 Web Audio 连接，让 <audio> 直接输出
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     try {
       if (this.audioSource) {
         this.audioSource.disconnect();
+        this.audioSource = null;
+      }
+
+      if (isIOS) {
+        if (source instanceof HTMLAudioElement) {
+          this.audioElement = source;
+        }
+        this.iosBypass = true;
+        return;
       }
 
       if (source instanceof HTMLAudioElement) {

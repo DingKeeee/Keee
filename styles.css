@@ -281,7 +281,7 @@ button {
   position: relative;
   z-index: 5;
   display: flex;
-  width: 200vw;
+  width: 500vw;
   height: 100vh;
   transform: translate3d(0,0,0);
   will-change: transform;
@@ -4218,6 +4218,7 @@ body[data-phase="scene5"] .page-field .scene-reveal {
   gap: clamp(16px, 1.8vw, 26px);
   padding-top: 20px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(105,225,190,.28) transparent;
 }
@@ -4267,13 +4268,12 @@ body[data-phase="scene5"] .page-field .scene-reveal {
   border-radius: 15px;
   border: 1px solid rgba(255,255,255,.08);
   background: rgba(255,255,255,.045);
-  transition: border-color .3s ease, background .3s ease, transform .3s ease;
+  transition: border-color .3s ease, background .3s ease;
 }
 
 .award-group li:hover {
   border-color: color-mix(in srgb, var(--group-accent) 55%, transparent);
   background: rgba(255,255,255,.07);
-  transform: translateX(3px);
 }
 
 .award-group li b {
